@@ -26,11 +26,10 @@ namespace SocketLogViewer
         MySettings Setting;
         List<string> Colors = new List<string>
             {
-                "#eeeeee","#cfd8dc","#bcaaa4","#ffab91",
+                "#bcaaa4","#ffab91",
                 "#ffcc80","#ffe082","#ffe082","#fff59d",
                 "#e6ee9c","#c5e1a5","#80deea","#90caf9",
                 "#b39ddb","#f48fb1","#1976d2"
-
             };
         public MainWindow()
         {
@@ -99,11 +98,15 @@ namespace SocketLogViewer
 
             app.AcceptedMessageEvent += (s) =>
             {
-                if (messages.Count > 60)
+                logListView.Dispatcher.Invoke(() =>
                 {
-                    for (var i = 0; i < 15; i++)
-                        messages.RemoveAt(0);
-                }
+                    if (messages.Count > 60)
+                    {
+                        for (var i = 0; i < 15; i++)
+                            messages.RemoveAt(0);
+                    }
+                });
+                
 
                 if (s.Contains('\n'))
                 {
@@ -122,7 +125,8 @@ namespace SocketLogViewer
                      });*/
                     logListView.Dispatcher.Invoke(() =>
                     {
-                        messages.Add(new LogMessage() { Log = sentence, Platform = "iOS", Time = DateTime.Now.ToString(), Color = color });
+                        var s = sentence.Split('~');
+                        messages.Add(new LogMessage() { Log = s[0], Platform = s[1], Time = s[2], Color = color });
                     });
                     if (arr.Length > 2)
                     {
@@ -135,9 +139,11 @@ namespace SocketLogViewer
                                 richTextBox.AppendText(sentence, color);
                                 logs.Add(new KeyValuePair<string, string>(sentence, color));
                             });*/
+
                             logListView.Dispatcher.Invoke(() =>
                             {
-                                messages.Add(new LogMessage() { Log = sentence, Platform = "iOS", Time = DateTime.Now.ToString(), Color = color });
+                                var s = sentence.Split('~');
+                                messages.Add(new LogMessage() { Log = s[0], Platform = s[1], Time = s[2], Color = color });
                             });
 
                         }
@@ -202,7 +208,7 @@ namespace SocketLogViewer
 
         void CreateTagButton(KeyValuePair<string, string> tagAndColor)
         {
-            var tagButton = new Button() { Content = tagAndColor.Key };
+            var tagButton = new Button() { Content = tagAndColor.Key,Background=(SolidColorBrush)(new BrushConverter().ConvertFromString(tagAndColor.Value)) };
 
             //添加
             var tempMessages = new LogMessage[messages.Count];

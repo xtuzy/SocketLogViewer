@@ -29,7 +29,7 @@
                 <Button Content="清空LOG" Name="ClearButton" Click="ClearButton_Click" Width="50" Margin="10,0,10,0"></Button>
             </StackPanel>
         </Grid>
-        <ListView x:Name="logListView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3">
+        <ListView x:Name="logListView" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Background="Gray">
             <ListView.Resources>
                 <Style TargetType="{x:Type ListViewItem}">
                     <Style.Triggers>
@@ -41,12 +41,6 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Color}" Value="#bcaaa4">
                             <Setter Property="Background" Value="#bcaaa4" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Color}" Value="#eeeeee">
-                            <Setter Property="Background" Value="#eeeeee" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Color}" Value="#cfd8dc">
-                            <Setter Property="Background" Value="#cfd8dc" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Color}" Value="#ffe082">
                             <Setter Property="Background" Value="#ffe082" />
