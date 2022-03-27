@@ -100,13 +100,12 @@ namespace SocketLogViewer
             {
                 logListView.Dispatcher.Invoke(() =>
                 {
-                    if (messages.Count > 60)
+                    if (messages.Count > 300)
                     {
                         for (var i = 0; i < 15; i++)
                             messages.RemoveAt(0);
                     }
                 });
-                
 
                 if (s.Contains('\n'))
                 {
@@ -208,7 +207,7 @@ namespace SocketLogViewer
 
         void CreateTagButton(KeyValuePair<string, string> tagAndColor)
         {
-            var tagButton = new Button() { Content = tagAndColor.Key,Background=(SolidColorBrush)(new BrushConverter().ConvertFromString(tagAndColor.Value)) };
+            var tagButton = new Button() { Content = tagAndColor.Key, Background = (SolidColorBrush)(new BrushConverter().ConvertFromString(tagAndColor.Value)) };
 
             //添加
             var tempMessages = new LogMessage[messages.Count];
@@ -238,7 +237,7 @@ namespace SocketLogViewer
                         messages.CopyTo(tempMessages, 0);
                         foreach (var item in tempMessages)
                         {
-                            if (item.Log.Contains(tagAndColor.Key)&&item.Color==tagAndColor.Value)
+                            if (item.Log.Contains(tagAndColor.Key) && item.Color == tagAndColor.Value)
                                 item.Color = "White";
                         }
                         messages.Clear();
