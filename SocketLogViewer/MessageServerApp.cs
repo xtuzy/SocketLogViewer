@@ -33,66 +33,65 @@ namespace MessageServerApp
         /// </summary>
         /// <param name="args"></param>
         public static MessageServerApp CreatServerAppProgram()
-        { 
+        {
             if (App != null)
                 return App;
-            
+
             App = new MessageServerApp();
             // Welcome and Start listening
-            Console.WriteLine( "*** Chat Server Started {0} *** ", DateTime.Now.ToString( "G" ) );
+            Console.WriteLine("*** Chat Server Started {0} *** ", DateTime.Now.ToString("G"));
 
             int nPortListen = Port;
             // Determine the IPAddress of this machine
-            IPAddress [] aryLocalAddr = null;
+            IPAddress[] aryLocalAddr = null;
             String strHostName = "";
             try
             {
                 // NOTE: DNS lookups are nice and all but quite time consuming.
                 strHostName = Dns.GetHostName();
                 //IPHostEntry ipEntry = Dns.GetHostByName( strHostName );//过时方法
-                IPHostEntry ipEntry = Dns.GetHostEntry( strHostName );
+                IPHostEntry ipEntry = Dns.GetHostEntry(strHostName);
 
                 aryLocalAddr = ipEntry.AddressList;//得到ip地址列表
             }
-            catch( Exception ex )
+            catch (Exception ex)
             {
-                Console.WriteLine ("Error trying to get local address {0} ", ex.Message );
+                Console.WriteLine("Error trying to get local address {0} ", ex.Message);
             }
-    
+
             // Verify we got an IP address. Tell the user if we did
-            if( aryLocalAddr == null || aryLocalAddr.Length < 1 )
+            if (aryLocalAddr == null || aryLocalAddr.Length < 1)
             {
-                Console.WriteLine( "Unable to get local address" );
+                Console.WriteLine("Unable to get local address");
                 return null;
             }
 
             // Create the sockListener socket in this machines IP address
-            
-            App.sockListener = new Socket( AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp );
+
+            App.sockListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             //sockListener.Bind( new IPEndPoint( aryLocalAddr[0], nPortListen ) );//这里报错,说地址和 AddressFamily.InterNetwork不符合
             //sockListener.Bind( new IPEndPoint( IPAddress.Loopback, nPortListen ) );	// For use with localhost 127.0.0.1
 
             //这里查找出符合的ip地址,参考https://stackoverflow.com/questions/2370388/socketexception-address-incompatible-with-requested-protocol
-            
-            foreach(var ip in aryLocalAddr)
+
+            foreach (var ip in aryLocalAddr)
             {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                if (ip.AddressFamily == AddressFamily.InterNetwork && ip.ToString().StartsWith("192.168"))
                 {
                     App.MyIp = ip;
-                    App.sockListener.Bind(new IPEndPoint(ip,nPortListen));
-                    Console.WriteLine( "Listening on : [{0}] {1}:{2}", strHostName, ip, nPortListen );
+                    App.sockListener.Bind(new IPEndPoint(ip, nPortListen));
+                    Console.WriteLine("Listening on : [{0}] {1}:{2}", strHostName, ip, nPortListen);
                     break;
-                }  
+                }
             }
-            
-            App.sockListener.Listen( 10 );
+
+            App.sockListener.Listen(10);
 
             // Setup a callback to be notified of connection requests
-            App.sockListener.BeginAccept( new AsyncCallback( App.OnConnectRequest ), App.sockListener );
+            App.sockListener.BeginAccept(new AsyncCallback(App.OnConnectRequest), App.sockListener);
 
             return App;
         }
-
 
         /// <summary>
         /// Callback used when a client requests a connection. 
@@ -100,11 +99,11 @@ namespace MessageServerApp
         /// accept more connections.
         /// </summary>
         /// <param name="ar"></param>
-         void OnConnectRequest( IAsyncResult ar )
+        void OnConnectRequest(IAsyncResult ar)
         {
             Socket listener = (Socket)ar.AsyncState;
-            NewConnection( listener.EndAccept( ar ) );
-            listener.BeginAccept( new AsyncCallback( OnConnectRequest ), listener );
+            NewConnection(listener.EndAccept(ar));
+            listener.BeginAccept(new AsyncCallback(OnConnectRequest), listener);
         }
 
         /// <summary>
@@ -115,14 +114,14 @@ namespace MessageServerApp
         /// </summary>
         /// <param name="sockClient">Connection to keep</param>
         //public void NewConnection( TcpListener sockListener )
-         void NewConnection( Socket sockClient )
+        void NewConnection(Socket sockClient)
         {
             // Program blocks on Accept() until a client connects.
             //SocketChatClient client = new SocketChatClient( sockListener.AcceptSocket() );
-            SocketChatClient client = new SocketChatClient( sockClient );
-            m_aryClients.Add( client );
-            Console.WriteLine( "Accept from client {0}, joined", client.Sock.RemoteEndPoint );
- 
+            SocketChatClient client = new SocketChatClient(sockClient);
+            m_aryClients.Add(client);
+            Console.WriteLine("Accept from client {0}, joined", client.Sock.RemoteEndPoint);
+
             // Get current date and time.
             //DateTime now = DateTime.Now;
             //String strDateLine = "Welcome " + now.ToString("G") + "\n\r";
@@ -131,7 +130,7 @@ namespace MessageServerApp
             // Byte[] byteDateLine = System.Text.Encoding.UTF8.GetBytes( strDateLine.ToCharArray() );
             // client.Sock.Send( byteDateLine, byteDateLine.Length, 0 );
 
-            client.SetupRecieveCallback( this );
+            client.SetupRecieveCallback(this);
         }
 
         /// <summary>
@@ -157,13 +156,12 @@ namespace MessageServerApp
             //我添加的打印接收到的消息
             string sRecieved = Encoding.UTF8.GetString(aryRet);
             //Console.WriteLine("Client {0}: {1}", client.Sock.RemoteEndPoint, sRecieved);
-            
-            if(AcceptedMessageEvent != null)
+
+            if (AcceptedMessageEvent != null)
                 AcceptedMessageEvent.Invoke(sRecieved);
-          
 
             // Send the recieved data to all clients (including sender for echo)
-            foreach( SocketChatClient clientSend in m_aryClients )
+            foreach (SocketChatClient clientSend in m_aryClients)
             {
                 try
                 {
@@ -172,13 +170,13 @@ namespace MessageServerApp
                 catch
                 {
                     // If the send fails the close the connection
-                    Console.WriteLine( "Send to client {0} failed", client.Sock.RemoteEndPoint );
+                    Console.WriteLine("Send to client {0} failed", client.Sock.RemoteEndPoint);
                     clientSend.Sock.Close();
-                    m_aryClients.Remove( client );
+                    m_aryClients.Remove(client);
                     return;
                 }
             }
-            client.SetupRecieveCallback( this );
+            client.SetupRecieveCallback(this);
         }
 
         public void Dispose()
@@ -202,7 +200,7 @@ namespace MessageServerApp
         /// Constructor
         /// </summary>
         /// <param name="sock">client socket conneciton this object represents</param>
-        public SocketChatClient( Socket sock )
+        public SocketChatClient(Socket sock)
         {
             m_sock = sock;
         }
@@ -210,23 +208,23 @@ namespace MessageServerApp
         // Readonly access
         public Socket Sock
         {
-            get{ return m_sock; }
+            get { return m_sock; }
         }
 
         /// <summary>
         /// Setup the callback for recieved data and loss of conneciton
         /// </summary>
         /// <param name="app"></param>
-        public void SetupRecieveCallback(MessageServerApp app )
+        public void SetupRecieveCallback(MessageServerApp app)
         {
             try
             {
                 AsyncCallback recieveData = new AsyncCallback(app.OnRecievedData);
-                m_sock.BeginReceive( m_byBuff, 0, m_byBuff.Length, SocketFlags.None, recieveData, this );
+                m_sock.BeginReceive(m_byBuff, 0, m_byBuff.Length, SocketFlags.None, recieveData, this);
             }
-            catch( Exception ex )
+            catch (Exception ex)
             {
-                Console.WriteLine( "Recieve callback setup failed! {0}", ex.Message );
+                Console.WriteLine("Recieve callback setup failed! {0}", ex.Message);
             }
         }
 
@@ -236,18 +234,18 @@ namespace MessageServerApp
         /// </summary>
         /// <param name="ar"></param>
         /// <returns>Array of bytes containing the received data</returns>
-        public byte [] GetRecievedData( IAsyncResult ar )
+        public byte[] GetRecievedData(IAsyncResult ar)
         {
             int nBytesRec = 0;
             try
             {
-                nBytesRec = m_sock.EndReceive( ar );
+                nBytesRec = m_sock.EndReceive(ar);
             }
-            catch{}
-            byte [] byReturn = new byte[nBytesRec];
+            catch { }
+            byte[] byReturn = new byte[nBytesRec];
             //m_byBuff.
-            Array.Copy( m_byBuff, byReturn, nBytesRec );
-            
+            Array.Copy(m_byBuff, byReturn, nBytesRec);
+
             /*
             // Check for any remaining data and display it
             // This will improve performance for large packets 
