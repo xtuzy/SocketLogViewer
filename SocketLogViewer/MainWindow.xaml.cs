@@ -201,14 +201,16 @@ namespace SocketLogViewer
         {
             //浅色,部分选自Material
             var color = Colors[0];
-            Colors.RemoveAt(0);
             return color;
         }
 
         void CreateTagButton(KeyValuePair<string, string> tagAndColor)
         {
             var tagButton = new Button() { Content = tagAndColor.Key, Background = (SolidColorBrush)(new BrushConverter().ConvertFromString(tagAndColor.Value)) };
-
+            if(Colors.Contains(tagAndColor.Value))
+            {
+                Colors.Remove(tagAndColor.Value);
+            }
             //添加
             var tempMessages = new LogMessage[messages.Count];
             messages.CopyTo(tempMessages, 0);
